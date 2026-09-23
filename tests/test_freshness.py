@@ -39,16 +39,17 @@ def test_stale_file_names_newer_same_name_copy(tmp_path: Path) -> None:
 
 
 def test_symlinked_matches_are_ignored(tmp_path: Path) -> None:
-    candidate = write_at(tmp_path / "outgoing" / "report.txt", "old", 2_000_000_000)
+    root = tmp_path / "root"
+    candidate = write_at(root / "outgoing" / "report.txt", "old", 2_000_000_000)
     target = write_at(tmp_path / "outside" / "report.txt", "new", 3_000_000_000)
-    link = tmp_path / "workspace" / "report.txt"
+    link = root / "workspace" / "report.txt"
     link.parent.mkdir()
     try:
         link.symlink_to(target)
     except OSError as error:
         pytest.skip(f"symlink creation is unavailable: {error}")
 
-    report = inspect_file(candidate, tmp_path)
+    report = inspect_file(candidate, root)
 
     assert report.status == "fresh"
     assert report.same_name_count == 0
